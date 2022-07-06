@@ -29,7 +29,7 @@ pip install -r requirements.txt
 
 TO add files to git
 ...
-git add.  OR git add <file_name>
+git add .  OR git add <file_name>
 ....
 
 to commit file
