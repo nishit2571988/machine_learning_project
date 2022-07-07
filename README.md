@@ -66,3 +66,10 @@ set up Docker
 5. Run docker image = docker run -p 5000:5000 -e PORT=5000 <IMAGE_ID>
 6. To check running docker container = docker ps
 7. To stop docker container = docker stop <container_id>
+
+
+
+
+'''
+python setup.py install
+'''
