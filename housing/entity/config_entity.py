@@ -1,4 +1,4 @@
-from collection import namedtuple
+from collections import namedtuple
 
 DataIngestionConfig = namedtuple("DataIngestionConfig",["dataset_download_url",
                                                         "tgz_download_dir",
@@ -18,3 +18,5 @@ DataTrainerConfig = namedtuple("DataTrainerConfig",["trained_model_file_path","b
 DataEvaluationConfig = namedtuple("DataEvaluationConfig",["model_evaluation_file_paht","time_stamp"])
 
 DataPusherConfig = namedtuple("DataPusherConfig",["export_dir_path"])
+
+TrainingPipelineConfig  = namedtuple("TrainingPipelineConfig",["artifact_dir"])
