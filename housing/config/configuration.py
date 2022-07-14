@@ -1,4 +1,4 @@
-from housing.entity.config_entity import DataIngestionConfig,DataValidationConfig,DataTransformationConfig,\
+from housing.entity.config_entity import DataIngestionConfig,DataValidationConfig,DataTransformationConfig, \
     DataTrainerConfig,DataEvaluationConfig,DataPusherConfig,TrainingPipelineConfig
 from housing.util.util import read_yaml_file
 from housing.logger import logging

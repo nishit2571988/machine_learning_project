@@ -39,7 +39,7 @@ class DataIngestion:
             tgz_file_path = os.path.join(tgz_download_dir,housing_file_name)
 
             logging.info(f"Downloading file from :[{download_url}] into :[{tgz_file_path}]")
-            urllib.request.urlretrive(download_url,tgz_file_path)
+            urllib.request.urlretrieve(download_url, tgz_file_path)
             logging.info(f"File :[{tgz_file_path}] has been downloaded successfully.")
 
             return tgz_file_path
@@ -90,18 +90,18 @@ class DataIngestion:
 
             for train_index,test_index in split.split(housing_data_frame, housing_data_frame["income_cat"]):
                 strat_train_set = housing_data_frame.loc[train_index].drop(["income_cat"],axis=1)
-                strat_test_set = housing_data_frame.loc[train_index].drop(["income_cat"],axis=1)
+                strat_test_set = housing_data_frame.loc[test_index].drop(["income_cat"],axis=1)
 
             train_file_path = os.path.join(self.data_ingestion_config.ingested_train_dir,file_name)
             test_file_path = os.path.join(self.data_ingestion_config.ingested_test_dir,file_name)
 
             if strat_train_set is not None:
-                os.mkdirs(self.data_ingestion_config.ingested_train_dir,exist_ok=True)
+                os.makedirs(self.data_ingestion_config.ingested_train_dir,exist_ok=True)
                 logging.info(f"Exporting traning dataset to file: [{train_file_path}]")
                 strat_train_set.to_csv(train_file_path,index=False)
 
             if strat_test_set is not None:
-                os.mkdirs(self.data_ingestion_config.ingested_test_dir,exist_ok=True)
+                os.makedirs(self.data_ingestion_config.ingested_test_dir,exist_ok=True)
                 logging.info(f"Exporting test dataset to file: [{test_file_path}]")
                 strat_test_set.to_csv(test_file_path,index=False)
 
