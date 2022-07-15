@@ -1,0 +1,5 @@
+{
+    "editor.accessibilityPageSize": 100000,
+    "json.maxItemsComputed": 500000,
+    "notebook.output.textLineLimit": 24000
+}
