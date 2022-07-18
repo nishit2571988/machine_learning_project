@@ -1,5 +1,3 @@
-from logging import exception
-
 from pyparsing import null_debug_action
 from housing.entity.config_entity import DataIngestionConfig
 import sys,os
