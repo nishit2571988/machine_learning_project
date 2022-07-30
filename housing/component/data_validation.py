@@ -1,8 +1,9 @@
 from email import message
 from tempfile import TemporaryFile
 from evidently import dashboard
-
+from housing.constant import DATA_DRIFT_DATA_DRIFT_KEY, DATA_DRIFT_DATA_KEY, DATA_DRIFT_DATASET_DRIFT_KEY, DATA_DRIFT_METRICS_KEY, SCHEMA_COLUMNS_KEY, SCHEMA_DOMAIN_VALUE_KEY
 from sklearn.feature_selection import SelectFdr
+from housing.util.util import read_yaml_file,save_json_file
 from housing.logger import logging
 from housing.exception import HousingException
 from housing.entity.config_entity import DataValidationConfig
@@ -62,9 +63,101 @@ class DataValidation:
 
         except Exception as e:
             raise HousingException(e,sys) from e
+    
+    def validate_num_columns(self)->bool:
+        try:
+            validate_num_columns = False
+            no_col_schema = len(self.schema[SCHEMA_COLUMNS_KEY])
+            no_col_train_df = len(self.train_df.columns)
+            no_col_test_df = len(self.test_df.columns)
+            if (no_col_schema==no_col_train_df) and (no_col_schema==no_col_test_df):
+                validate_num_cols = True
+            
+            logging.info(f"Number of Columns Check: Passed")
+            return validate_num_columns                
+        except Exception as e:
+            raise HousingException(e,sys) from e
+    
+    def validate_column_names(self)->bool:
+        try:
+            validate_column_names = False
+            for column in self.train_df.columns:
+                if not column in self.schema[SCHEMA_COLUMNS_KEY]:
+                    message = f"{column} not in schema file"
+                    raise Exception(message)
+            validate_column_names = True
+            
+            logging.info(f"Column Names Check: Passed")
+            return validate_column_names
+            
+        except Exception as e:
+            raise HousingException(e,sys) from e
+        
+    def validate_domain_values (self)->bool:
+        try:
+            validate_domain_values = False
+            for column,category_list in self.schema[SCHEMA_DOMAIN_VALUE_KEY]. \
+                items():
+                for category in self.train_df[column].unique():
+                    if category not in category_list:
+                        message = f"[{column}] column does not accept <{category}>"
+                        "in schema"
+                        raise Exception(message)
+            validate_domain_values = True
+            
+            logging.info(f"Domain Values Check: Passed")    
+            return validate_domain_values
+        
+        except Exception as e:
+            raise HousingException(e,sys) from e
+        
+    def validate_column_dtypes (self):
+        try:
+            validate_column_dtypes = False
+            for column in self.train_df.columns:
+                try:
+                    schema_dtype = self.schema[SCHEMA_COLUMNS_KEY][column]
+                    column_dtype = str(self.train_df[column].dtype)
+                    if not column_dtype == schema_dtype:
+                        self.train_df[column].astype(schema_dtype)
+                except Exception as e:
+                    message = f"[{column}] : dtype [{column_dtype}] " + \
+                    "\n {column_dtype} cannot be typecasted to <{schema_dtype}>"
+                    raise Exception(message)
+            
+            validate_column_dtypes = True
+            
+            logging.info(f"Column Dtypes Check: Passed")
+            return validate_column_dtypes      
+              
+        except Exception as e:
+            raise HousingException(e,sys) from e
 
     def validate_dataset_schema(self)->bool:
         try:
+            is_validated = False
+            schema_file_path = self.data_validation_config.schema_file_path
+            # read the schema
+            self.schema = read_yaml_file(file_path=schema_file_path)
+            # get the train & test data
+            self.train_df,self.test_df =self.get_train_and_test_dataset()            
+            
+            #1. Number of Column
+            validated_num_columns = self.validate_num_columns()
+            #2. Check column names
+            validated_column_names = self.validate_column_names()
+            #3. Check the value of ocean proximity 
+            validated_domain_values = self.validate_domain_values()
+            #4. check dtypes of columns
+            validated_column_dtypes = self.validate_column_dtypes()
+            
+            is_validated =  (validated_num_columns & validated_column_names 
+                            & validated_domain_values & validated_column_dtypes)
+            
+            logging.info(f"Validation of Schema is Completed")
+            return is_validated
+
+            #commentedd
             validation_staus = False
 
             #Assignment validate training and testing dataset using schema file
@@ -127,10 +220,19 @@ class DataValidation:
 
     def is_data_drift_found(self):
         try:
-            report = self.get_save_data_drift_report()
-            self.save_data_drift_report_page()
+            validated_data_drift = False
+            report = self.get_save_data_drift_report() 
+            
+            if report[DATA_DRIFT_DATA_DRIFT_KEY][DATA_DRIFT_DATA_KEY][
+                DATA_DRIFT_METRICS_KEY][DATA_DRIFT_DATASET_DRIFT_KEY]:
+                message = f"Data Drift is found in Dataset"
+                raise Exception(message)
+            self.save_data_drift_report_page()       
 
-            return True
+            validated_data_drift=True
+
+            logging.info(f"Data Drift Check: Passed")
+            return validated_data_drift
         except Exception as e:
             raise HousingException(e,sys) from e
 
@@ -148,9 +250,11 @@ class DataValidation:
             )
 
             logging.info(f"Data validation artifact: {data_validation_artifact}")
+
+            return data_validation_artifact
         except Exception as e:
             raise HousingException(e,sys) from e
     
     
     def __del__(self):
-        logging.info(f"{'>>'*30}Data Valdaition log completed.{'<<'*30} \n")
+        logging.info(f"{'>>'*30}Data Valdaition log completed.{'<<'*30} \n\n")

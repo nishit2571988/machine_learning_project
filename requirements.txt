@@ -5,5 +5,7 @@ sklearn
 pandas
 PyYAML
 evidently
+dill
+matplotlib
 six
 -e .
